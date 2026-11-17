@@ -66,6 +66,10 @@ export default function Footer() {
               Privacy Notice
             </SiteLink>
           </div>
+          <p className="mt-4 max-w-3xl text-[0.75rem] leading-relaxed text-white/40">
+            This website is maintained by Nana and Evan. All content is protected by copyright. Unauthorized copying,
+            reproduction, or redistribution is prohibited.
+          </p>
         </div>
       </div>
     </footer>

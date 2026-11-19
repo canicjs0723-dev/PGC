@@ -35,8 +35,9 @@ jobs:
         run: npm run build
         env:
           GITHUB_PAGES: "1"
-          PAGES_BASE_PATH: /PGC-Work
-          GITHUB_REPOSITORY: canicjs0723-dev/PGC-Work
+          # The Pages site lives at /<repository name>/, so follow the repository's current name.
+          PAGES_BASE_PATH: /${{ github.event.repository.name }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

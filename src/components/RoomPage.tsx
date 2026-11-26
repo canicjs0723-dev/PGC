@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import SiteLink from "@/components/SiteLink";
 import PageHero from "./PageHero";
@@ -5,7 +7,8 @@ import PageTabs from "./PageTabs";
 import RoomGallery from "./RoomGallery";
 import SpaceOverview from "./SpaceOverview";
 import { ArrowIcon, Container, SectionLabel } from "./ui";
-import type { Room } from "@/content/rooms";
+import { useL } from "@/i18n/client";
+import { roomsContent } from "@/content/rooms";
 
 function RoomFactIcon({ label }: { label: string }) {
   const common = {
@@ -19,10 +22,10 @@ function RoomFactIcon({ label }: { label: string }) {
     "aria-hidden": true as const,
   };
 
-  if (label.toLowerCase().includes("guest")) {
+  if (/guest|宾客|入住|人/i.test(label)) {
     return <svg {...common}><circle cx="12" cy="7" r="3" /><path d="M5.5 20v-2a6.5 6.5 0 0 1 13 0v2z" /></svg>;
   }
-  if (label.toLowerCase().includes("bed")) {
+  if (/bed|床/i.test(label)) {
     return <svg {...common}><path d="M3 19v-9m18 9v-5a3 3 0 0 0-3-3H3m0 4h18M7 11V8h4a3 3 0 0 1 3 3" /></svg>;
   }
   return <svg {...common}><path d="M4 7h16v13H4zM4 11h16M8 7V4m8 3V4m-8 7v2m8-2v2" /></svg>;
@@ -31,7 +34,10 @@ function RoomFactIcon({ label }: { label: string }) {
 // Literal class names so Tailwind generates them; one column per fact.
 const factColumns: Record<number, string> = { 1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-3" };
 
-export default function RoomPage({ room, other }: { room: Room; other: Room }) {
+export default function RoomPage({ kind }: { kind: "business" | "guest" }) {
+  const L = useL();
+  const { businessRoom, guestRoom } = roomsContent(L);
+  const [room, other] = kind === "business" ? [businessRoom, guestRoom] : [guestRoom, businessRoom];
   const warm = room.slug === "guest-room";
   const title = room.name.replace(/^PGC \d+\s*/, "");
 
@@ -39,7 +45,7 @@ export default function RoomPage({ room, other }: { room: Room; other: Room }) {
     <>
       <PageHero
         tall
-        label="Rooms"
+        label={L("Rooms", "客房")}
         title={title}
         subtitle={room.tagline}
         image={room.hero.src}
@@ -48,18 +54,18 @@ export default function RoomPage({ room, other }: { room: Room; other: Room }) {
       />
 
       <PageTabs
-        label="Rooms"
+        label={L("Rooms", "客房")}
         items={[room, other]
           .sort((a, b) => (a.slug < b.slug ? -1 : 1))
           .map((r) => ({ label: r.name.replace(/^PGC \d+\s*/, ""), href: `/${r.slug}`, active: r.slug === room.slug }))
-          .concat({ label: "Guide", href: "/guide", active: false })}
+          .concat({ label: L("Guide", "入住指南"), href: "/guide", active: false })}
       />
 
       {/* Intro + key facts */}
       <section className={`${warm ? "bg-ivory" : "bg-warm-white"} pt-24 pb-[59px] md:pt-36 md:pb-[86px]`}>
         <Container className="grid gap-14 md:grid-cols-12">
           <div className="reveal md:col-span-5">
-            <SectionLabel tight>Overview</SectionLabel>
+            <SectionLabel tight>{L("Overview", "概览")}</SectionLabel>
             {room.overview ? (
               <>
                 <h2 className="mt-8 font-serif text-[30px] font-light leading-tight md:text-[40px]">
@@ -107,7 +113,7 @@ export default function RoomPage({ room, other }: { room: Room; other: Room }) {
       <section className={`${warm ? "bg-ivory" : "bg-warm-white"} pt-[58px] pb-20 md:pt-[85px] md:pb-28`}>
         <Container className="grid gap-10 md:grid-cols-12">
           <div className="reveal md:col-span-4">
-            <SectionLabel tight>Ways to Use PGC</SectionLabel>
+            <SectionLabel tight>{L("Ways to Use PGC", "PGC 使用方式")}</SectionLabel>
             <h2 className="mt-5 font-serif text-[40px] font-light leading-none md:text-[56px]">
               {room.name}
             </h2>
@@ -139,9 +145,9 @@ export default function RoomPage({ room, other }: { room: Room; other: Room }) {
       <section className={`${warm ? "bg-ivory" : "bg-warm-white"} py-24 md:py-36`}>
         <Container className="grid items-start gap-10 md:grid-cols-12 md:gap-12">
           <div className="reveal md:col-span-3">
-            <SectionLabel tight>Spaces</SectionLabel>
-            <h2 className="mt-5 font-serif text-[40px] font-light md:text-[56px]">Inside the Room</h2>
-            <p className="mt-4 text-[14px] text-charcoal/65">Click an image to view it larger.</p>
+            <SectionLabel tight>{L("Spaces", "空间")}</SectionLabel>
+            <h2 className="mt-5 font-serif text-[40px] font-light md:text-[56px]">{L("Inside the Room", "客房内景")}</h2>
+            <p className="mt-4 text-[14px] text-charcoal/65">{L("Click an image to view it larger.", "点击图片可查看大图。")}</p>
           </div>
           <div className="md:col-span-9">
             <RoomGallery room={room} />
@@ -153,14 +159,14 @@ export default function RoomPage({ room, other }: { room: Room; other: Room }) {
       <section className="bg-beige/60 py-24 md:py-32">
         <Container className="grid gap-12 md:grid-cols-12">
           <div className="reveal md:col-span-4">
-            <SectionLabel tight>In-Room Amenities</SectionLabel>
+            <SectionLabel tight>{L("In-Room Amenities", "客房设施")}</SectionLabel>
             <h2 className="mt-5 font-serif text-[40px] font-light leading-none md:text-[52px]">
-              Everything
+              {L("Everything", "一应俱全，")}
               <br />
-              You Need.
+              {L("You Need.", "尽在其中。")}
             </h2>
             <p className="mt-6 text-[14px] leading-relaxed text-charcoal/70">
-              Wi-Fi is available. Connection details are shared privately with confirmed guests.
+              {L("Wi-Fi is available. Connection details are shared privately with confirmed guests.", "提供 Wi-Fi。连接信息将单独告知已确认预订的宾客。")}
             </p>
           </div>
           <ul className="reveal grid grid-cols-2 gap-x-6 gap-y-3 self-start md:col-span-8 md:grid-cols-3">
@@ -174,7 +180,7 @@ export default function RoomPage({ room, other }: { room: Room; other: Room }) {
       </section>
 
       {/* Other room — horizontal card */}
-      <section aria-label="Other room" className="bg-charcoal py-16 text-white md:py-24">
+      <section aria-label={L("Other room", "其他客房")} className="bg-charcoal py-16 text-white md:py-24">
         <Container>
           <SiteLink
             href={`/${other.slug}`}
@@ -191,13 +197,13 @@ export default function RoomPage({ room, other }: { room: Room; other: Room }) {
               />
             </div>
             <div className="flex flex-col justify-center p-8 md:col-span-5 md:p-14">
-              <p className="text-[12px] uppercase tracking-[0.3em] text-accent">Next Space</p>
+              <p className="text-[12px] uppercase tracking-[0.3em] text-accent">{L("Next Space", "下一个空间")}</p>
               <h2 className="mt-5 font-serif text-[36px] font-light leading-[1.05] md:text-[48px]">
                 {other.name.replace(/^PGC \d+\s*/, "")}
               </h2>
               <p className="mt-6 text-[15px] leading-relaxed text-white/70">{other.tagline}</p>
               <span className="mt-10 inline-flex items-center gap-4 font-serif text-[18px] italic">
-                View {other.name.replace(/^PGC \d+\s*/, "")}
+                {L("View", "查看")} {other.name.replace(/^PGC \d+\s*/, "")}
                 <ArrowIcon className="size-6 transition-transform duration-500 group-hover:translate-x-2" />
               </span>
             </div>

@@ -2,8 +2,13 @@
 
 import SiteLink from "@/components/SiteLink";
 import { useState } from "react";
-import { privacyConsent } from "@/content/contact";
-import { site } from "@/content/site";
+import { contactContent } from "@/content/contact";
+import { siteContent } from "@/content/site";
+import { useL } from "@/i18n/client";
+import { makeL } from "@/i18n/core";
+
+// Contact settings only (addresses and endpoints are the same in both languages).
+const { site } = siteContent(makeL("en"));
 
 type Status = "idle" | "sending" | "sent" | "mailed" | "error";
 type FieldErrors = Partial<Record<"name" | "email" | "message" | "consent", string>>;
@@ -20,6 +25,8 @@ const field =
   "w-full border-0 border-b border-charcoal/25 bg-transparent px-0 py-3 text-[16px] outline-none transition-colors placeholder:text-charcoal/35 focus:border-charcoal";
 
 export default function ContactForm() {
+  const L = useL();
+  const { privacyConsent } = contactContent(L);
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -35,16 +42,16 @@ export default function ContactForm() {
     const inquiry = String(formData.get("message") ?? "").trim();
 
     const nextErrors: FieldErrors = {};
-    if (!name) nextErrors.name = "Please enter your name.";
-    if (!email) nextErrors.email = "Please enter your email address.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = "Please enter a valid email address.";
-    if (!inquiry) nextErrors.message = "Please enter your message.";
-    if (formData.get("consent") !== "yes") nextErrors.consent = "Please agree to the collection and use of personal information.";
+    if (!name) nextErrors.name = L("Please enter your name.", "请输入您的姓名。");
+    if (!email) nextErrors.email = L("Please enter your email address.", "请输入您的电子邮箱。");
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = L("Please enter a valid email address.", "请输入有效的电子邮箱地址。");
+    if (!inquiry) nextErrors.message = L("Please enter your message.", "请输入咨询内容。");
+    if (formData.get("consent") !== "yes") nextErrors.consent = L("Please agree to the collection and use of personal information.", "请同意个人信息的收集与使用。");
     setErrors(nextErrors);
     const firstInvalid = (["name", "email", "message", "consent"] as const).find((key) => nextErrors[key]);
     if (firstInvalid) {
       setStatus("error");
-      setMessage("Please check the highlighted fields.");
+      setMessage(L("Please check the highlighted fields.", "请检查标出的项目。"));
       (form.elements.namedItem(firstInvalid) as HTMLElement | null)?.focus();
       return;
     }
@@ -52,20 +59,21 @@ export default function ContactForm() {
     formData.set("email", email);
     formData.set("message", inquiry);
 
-    const subject = `[PGC Inquiry] ${name}`;
+    // The inbox reads English; Chinese-page inquiries are tagged so they stand out.
+    const subject = L(`[PGC Inquiry] ${name}`, `[PGC Inquiry · 中文] ${name}`);
     const company = String(formData.get("company") ?? "").trim();
     const phone = String(formData.get("phone") ?? "").trim();
 
     if (!relay) {
       const body = [
-        `Name: ${name}`,
-        company ? `Company: ${company}` : null,
-        `Email: ${email}`,
-        phone ? `Phone: ${phone}` : null,
+        L(`Name: ${name}`, `姓名：${name}`),
+        company ? L(`Company: ${company}`, `公司：${company}`) : null,
+        L(`Email: ${email}`, `电子邮箱：${email}`),
+        phone ? L(`Phone: ${phone}`, `电话：${phone}`) : null,
         "",
         inquiry,
         "",
-        "(I agree to the collection and use of my personal information for this inquiry.)",
+        L("(I agree to the collection and use of my personal information for this inquiry.)", "（本人同意为处理本次咨询而收集和使用本人的个人信息。）"),
       ]
         .filter((line) => line !== null)
         .join("\n");
@@ -91,7 +99,7 @@ export default function ContactForm() {
               body: JSON.stringify({
                 access_key: site.web3formsAccessKey,
                 subject,
-                from_name: "PGC Website",
+                from_name: L("PGC Website", "PGC 官网"),
                 replyto: email,
                 botcheck: fields.botcheck,
                 Name: name,
@@ -104,38 +112,39 @@ export default function ContactForm() {
             });
       const data = (await res.json().catch(() => ({}))) as { success?: string | boolean; message?: string };
       if (!res.ok || String(data.success) !== "true") {
-        throw new Error(data.message || "We could not send your inquiry.");
+        throw new Error(data.message || L("We could not send your inquiry.", "咨询未能发送。"));
       }
       setStatus("sent");
       form.reset();
     } catch (err) {
       setStatus("error");
-      const reason = err instanceof Error ? err.message : "We could not send your inquiry.";
-      setMessage(`${reason.replace(/[.!?]?\s*$/, ".")} Please try again in a moment.`);
+      const reason = err instanceof Error ? err.message : L("We could not send your inquiry.", "咨询未能发送。");
+      setMessage(L(`${reason.replace(/[.!?]?\s*$/, ".")} Please try again in a moment.`, `${reason.replace(/[.!?。！？]?\s*$/, "。")}请稍后再试。`));
     }
   }
 
   if (status === "mailed") {
     return (
       <div className="border-t border-charcoal/20 pt-10" role="status">
-        <p className="font-serif text-[36px] font-light">Almost done.</p>
+        <p className="font-serif text-[36px] font-light">{L("Almost done.", "即将完成。")}</p>
         <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-charcoal/70">
-          Your email app should now be open with your inquiry filled in. Please press <strong className="font-semibold text-charcoal">Send</strong> there to
-          reach us.
+          {L("Your email app should now be open with your inquiry filled in. Please press ", "您的邮件应用应已打开，并已填好咨询内容。请在邮件应用中点击")}
+          <strong className="font-semibold text-charcoal">{L("Send", "发送")}</strong>
+          {L(" there to reach us.", "，即可将咨询发送给我们。")}
         </p>
         <p className="mt-4 max-w-xl text-[14px] leading-relaxed text-charcoal/60">
-          Nothing opened?{" "}
+          {L("Nothing opened?", "邮件应用没有打开？请")}{" "}
           <a href={mailto} className="underline underline-offset-2">
-            Try again
+            {L("Try again", "重试")}
           </a>{" "}
-          or write to us directly at{" "}
+          {L("or write to us directly at", "，或直接发送邮件至")}{" "}
           <a href={`mailto:${site.inquiryEmail}`} className="underline underline-offset-2">
             {site.inquiryEmail}
           </a>
-          .
+          {L(".", "。")}
         </p>
         <button type="button" onClick={() => setStatus("idle")} className="mt-8 border-b border-charcoal/40 pb-0.5 text-[0.8125rem] uppercase tracking-[0.14em] hover:border-charcoal">
-          Back to the form
+          {L("Back to the form", "返回表单")}
         </button>
       </div>
     );
@@ -144,9 +153,9 @@ export default function ContactForm() {
   if (status === "sent") {
     return (
       <div className="border-t border-charcoal/20 pt-10" role="status">
-        <p className="font-serif text-[36px] font-light">Thank you.</p>
+        <p className="font-serif text-[36px] font-light">{L("Thank you.", "感谢您的咨询。")}</p>
         <p className="mt-4 text-[15px] leading-relaxed text-charcoal/70">
-          Your inquiry has been received. We will get back to you shortly.
+          {L("Your inquiry has been received. We will get back to you shortly.", "我们已收到您的咨询，将尽快与您联系。")}
         </p>
       </div>
     );
@@ -156,27 +165,27 @@ export default function ContactForm() {
     <form onSubmit={onSubmit} className="space-y-8" noValidate>
       <div className="grid gap-8 sm:grid-cols-2">
         <label className="block">
-          <span className="text-[11px] uppercase tracking-[0.24em] text-warm-gray">Name *</span>
+          <span className="text-[11px] uppercase tracking-[0.24em] text-warm-gray">{L("Name *", "姓名 *")}</span>
           <input name="name" required maxLength={80} autoComplete="name" aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? "name-error" : undefined} className={field} />
           {errors.name && <span id="name-error" className="mt-2 block text-[13px] text-red-700">{errors.name}</span>}
         </label>
         <label className="block">
-          <span className="text-[11px] uppercase tracking-[0.24em] text-warm-gray">Company</span>
+          <span className="text-[11px] uppercase tracking-[0.24em] text-warm-gray">{L("Company", "公司")}</span>
           <input name="company" maxLength={120} autoComplete="organization" className={field} />
         </label>
         <label className="block">
-          <span className="text-[11px] uppercase tracking-[0.24em] text-warm-gray">Email *</span>
+          <span className="text-[11px] uppercase tracking-[0.24em] text-warm-gray">{L("Email *", "电子邮箱 *")}</span>
           <input name="email" type="email" required maxLength={120} autoComplete="email" aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? "email-error" : undefined} className={field} />
           {errors.email && <span id="email-error" className="mt-2 block text-[13px] text-red-700">{errors.email}</span>}
         </label>
         <label className="block">
-          <span className="text-[11px] uppercase tracking-[0.24em] text-warm-gray">Phone</span>
+          <span className="text-[11px] uppercase tracking-[0.24em] text-warm-gray">{L("Phone", "电话")}</span>
           <input name="phone" type="tel" maxLength={40} autoComplete="tel" className={field} />
         </label>
       </div>
 
       <label className="block">
-        <span className="text-[11px] uppercase tracking-[0.24em] text-warm-gray">Message *</span>
+        <span className="text-[11px] uppercase tracking-[0.24em] text-warm-gray">{L("Message *", "咨询内容 *")}</span>
         <textarea name="message" required rows={5} maxLength={relay ? 3000 : 1500} aria-invalid={Boolean(errors.message)} aria-describedby={errors.message ? "message-error" : undefined} className={`${field} resize-y`} />
         {errors.message && <span id="message-error" className="mt-2 block text-[13px] text-red-700">{errors.message}</span>}
       </label>
@@ -184,20 +193,20 @@ export default function ContactForm() {
       <input type="text" name="_honey" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
 
       <div className="space-y-3 text-[13px] leading-relaxed text-charcoal/75">
-        <p className="font-medium text-charcoal">Consent to collection and use of personal information</p>
+        <p className="font-medium text-charcoal">{L("Consent to collection and use of personal information", "个人信息收集及使用同意")}</p>
         <ul className="space-y-1">
-          <li>Items: {privacyConsent.items}</li>
-          <li>Purpose: {privacyConsent.purpose}</li>
-          <li>Retention: {privacyConsent.retention}</li>
+          <li>{L("Items:", "收集项目：")} {privacyConsent.items}</li>
+          <li>{L("Purpose:", "使用目的：")} {privacyConsent.purpose}</li>
+          <li>{L("Retention:", "保存期限：")} {privacyConsent.retention}</li>
         </ul>
         <p>
-          You may decline, but we will be unable to respond to your inquiry.{" "}
+          {L("You may decline, but we will be unable to respond to your inquiry.", "您有权拒绝，但拒绝后我们将无法回复您的咨询。")}{" "}
           <SiteLink href="/privacy" className="underline underline-offset-2">
-            Privacy Notice
+            {L("Privacy Notice", "隐私政策")}
           </SiteLink>
         </p>
         <label className="flex cursor-pointer items-center gap-3 text-charcoal">
-          <input type="checkbox" name="consent" value="yes" required aria-invalid={Boolean(errors.consent)} aria-describedby={errors.consent ? "consent-error" : undefined} className="size-4 accent-charcoal" />I agree
+          <input type="checkbox" name="consent" value="yes" required aria-invalid={Boolean(errors.consent)} aria-describedby={errors.consent ? "consent-error" : undefined} className="size-4 accent-charcoal" />{L("I agree", "我同意")}
         </label>
         {errors.consent && <p id="consent-error" className="text-[13px] text-red-700">{errors.consent}</p>}
       </div>
@@ -214,7 +223,7 @@ export default function ContactForm() {
         aria-busy={status === "sending"}
         className="group inline-flex items-center gap-4 bg-charcoal px-8 py-4 text-[13px] uppercase tracking-[0.22em] text-white transition-colors hover:bg-navy disabled:opacity-60"
       >
-        {status === "sending" ? "Sending…" : "Send Inquiry"}
+        {status === "sending" ? L("Sending…", "发送中…") : L("Send Inquiry", "发送咨询")}
       </button>
     </form>
   );

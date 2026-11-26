@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import LocationView from "@/components/LocationView";
+import { pageMeta } from "@/views/meta";
 
-// Information now opens on Location (the Guide moved under Rooms at /guide); this URL keeps working.
-export const metadata: Metadata = {
-  title: "Information · Location",
-  alternates: { canonical: "/information/location/" },
-};
+export const metadata: Metadata = pageMeta("en").information;
 
 export default function InformationPage() {
   return <LocationView />;

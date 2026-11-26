@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import LocationView from "@/components/LocationView";
-import { site } from "@/content/site";
+import { pageMeta } from "@/views/meta";
 
-export const metadata: Metadata = {
-  title: "Information · Location",
-  description: `${site.address.rooms}, ${site.address.street}. Directions and parking registration for Pangyo Global Campus.`,
-};
+export const metadata: Metadata = pageMeta("en").informationLocation;
 
 export default function InformationLocationPage() {
   return <LocationView />;

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useL } from "@/i18n/client";
 
 export type ArrivalStep = {
   src: string;
@@ -24,12 +25,15 @@ export type ArrivalStep = {
   boxes?: { x: number; y: number; w: number; h: number; label?: string }[];
 };
 
-const LABEL_FONT = "'Pretendard Variable', Pretendard, sans-serif";
+const LABEL_FONT = "'PGC Sans SC', 'Pretendard Variable', Pretendard, sans-serif";
+
+// Approximate rendered width of a label in em: CJK characters are a full em wide, Latin and digits about 0.62.
+const textEm = (text: string) => [...text].reduce((sum, ch) => sum + (/[\u2E80-\u9FFF\uF900-\uFAFF\uFF00-\uFFEF]/.test(ch) ? 1 : 0.62), 0);
 
 // A dark pill with white bold text, centred on (cx, cy) in photo pixels.
 function Pill({ cx, cy, text, unit, size = 0.05 }: { cx: number; cy: number; text: string; unit: number; size?: number }) {
   const fontSize = unit * size;
-  const width = text.length * fontSize * 0.62 + fontSize * 1.1;
+  const width = textEm(text) * fontSize + fontSize * 1.1;
   const height = fontSize * 1.55;
   return (
     <g>
@@ -110,7 +114,7 @@ function RouteOverlay({ step }: { step: ArrivalStep }) {
       })}
       {step.tag && (
         <Pill
-          cx={step.width - unit * 0.04 - (step.tag.length * unit * 0.062 * 0.62 + unit * 0.062 * 1.1) / 2}
+          cx={step.width - unit * 0.04 - (textEm(step.tag) * unit * 0.062 + unit * 0.062 * 1.1) / 2}
           cy={unit * 0.08}
           text={step.tag}
           unit={unit}
@@ -163,6 +167,7 @@ export default function ArrivalSteps({
   layout?: keyof typeof layouts;
   extra?: ReactNode;
 }) {
+  const L = useL();
   const tile = frames[frame];
   const list = layouts[layout];
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -215,7 +220,7 @@ export default function ArrivalSteps({
                 }}
                 type="button"
                 onClick={() => open(i)}
-                aria-label={`View step ${i + 1} photo larger`}
+                aria-label={L(`View step ${i + 1} photo larger`, `查看第 ${i + 1} 步的大图`)}
                 className="group block w-full"
               >
                 <span className={`reveal-img relative block overflow-hidden bg-beige ${tile.className}`} style={{ "--delay": `${i * 100}ms` } as React.CSSProperties}>
@@ -234,11 +239,11 @@ export default function ArrivalSteps({
 
       {active && activeIndex !== null && (
         <div className="fixed inset-0 z-[100] grid place-items-center bg-charcoal/95 p-5 text-white md:p-10">
-          <button type="button" aria-label="Close image viewer" onClick={() => setActiveIndex(null)} className="absolute inset-0 cursor-default" />
-          <div role="dialog" aria-modal="true" aria-label="Image viewer" className="relative z-10 flex h-full w-full max-w-[1440px] flex-col">
+          <button type="button" aria-label={L("Close image viewer", "关闭图片查看器")} onClick={() => setActiveIndex(null)} className="absolute inset-0 cursor-default" />
+          <div role="dialog" aria-modal="true" aria-label={L("Image viewer", "图片查看器")} className="relative z-10 flex h-full w-full max-w-[1440px] flex-col">
             <div className="flex items-center justify-between gap-4 py-2">
               <p className="text-[13px] uppercase tracking-[0.12em]">{active.caption}</p>
-              <button type="button" onClick={() => setActiveIndex(null)} aria-label="Close image viewer" className="grid size-11 shrink-0 place-items-center text-3xl leading-none">
+              <button type="button" onClick={() => setActiveIndex(null)} aria-label={L("Close image viewer", "关闭图片查看器")} className="grid size-11 shrink-0 place-items-center text-3xl leading-none">
                 ×
               </button>
             </div>

@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import RoomPage from "@/components/RoomPage";
-import { businessRoom, guestRoom } from "@/content/rooms";
+import { pageMeta } from "@/views/meta";
 
-export const metadata: Metadata = {
-  title: "Business Room",
-  description: businessRoom.description[0],
-};
+export const metadata: Metadata = pageMeta("en").businessRoom;
 
 export default function BusinessRoomPage() {
-  return <RoomPage room={businessRoom} other={guestRoom} />;
+  return <RoomPage kind="business" />;
 }

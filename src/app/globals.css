@@ -5,6 +5,10 @@
 @import "@fontsource/tinos/latin-400.css";
 @import "@fontsource/tinos/latin-400-italic.css";
 @import "@fontsource/tinos/latin-700.css";
+/* Chinese pages (/zh): Noto Sans SC pairs with Pretendard (both descend from Source Han Sans) and Noto Serif SC
+   with Tinos. They cover only Chinese characters and CJK punctuation and are used only under :lang(zh) below,
+   so English pages never download them and Latin letters and digits keep their original faces. */
+@import "./fonts/noto-sc-cjk.css";
 @import "tailwindcss";
 
 /* Digits only (0-9): the exact Pretendard Variable face used by the room tabs, subset so it can
@@ -38,8 +42,14 @@
   --color-charcoal: var(--charcoal);
   --color-navy: var(--navy);
   --color-accent: var(--accent);
-  --font-sans: "PGC Numerals", "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-  --font-serif: "PGC Numerals", "Tinos", "Times New Roman", serif;
+  --font-sans: var(--pgc-sans);
+  --font-serif: var(--pgc-serif);
+}
+
+/* Font stacks live in plain variables so the Chinese pages can swap them (see html:lang(zh) below). */
+:root {
+  --pgc-sans: "PGC Numerals", "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  --pgc-serif: "PGC Numerals", "Tinos", "Times New Roman", serif;
 }
 
 html {
@@ -49,9 +59,22 @@ html {
 body {
   background: var(--warm-white);
   color: var(--charcoal);
-  font-family: var(--font-sans);
+  font-family: var(--pgc-sans);
   -webkit-font-smoothing: antialiased;
   word-break: keep-all;
+}
+
+/* Chinese pages. The root layout marks <html lang="zh-CN"> for any address under /zh before first paint. */
+html:lang(zh) {
+  --pgc-sans: "PGC Numerals", "PGC Sans SC", "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --pgc-serif: "PGC Numerals", "PGC Serif SC", "Tinos", "Times New Roman", "Songti SC", "SimSun", serif;
+}
+
+/* Chinese has no spaces between words, so lines must be allowed to break between characters (keep-all would
+   push whole sentences onto one line). strict keeps CJK punctuation off line starts. */
+html:lang(zh) body {
+  word-break: normal;
+  line-break: strict;
 }
 
 /* Maintain the editorial headings while normalizing small labels and body copy. */

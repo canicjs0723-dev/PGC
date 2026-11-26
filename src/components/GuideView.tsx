@@ -1,28 +1,36 @@
+"use client";
+
 import GuidelineIcon from "@/components/GuidelineIcon";
 import PageHero from "@/components/PageHero";
 import PageTabs from "@/components/PageTabs";
 import { ArrowLink, Container, SectionLabel } from "@/components/ui";
-import { faq, guidelines, stayGuide } from "@/content/guide";
+import { guideContent } from "@/content/guide";
+import { useL } from "@/i18n/client";
+import { makeL } from "@/i18n/core";
 
 export default function GuideView() {
+  const L = useL();
+  const { faq, guidelines, stayGuide } = guideContent(L);
+  // Section anchors use the English titles so links like /guide/#check-in work in both languages.
+  const anchors = guideContent(makeL("en")).stayGuide.map((s) => s.title.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-"));
   return (
     <>
       <PageHero
         tall
-        label="Rooms"
-        title="Guide"
-        subtitle="Your Stay, Made Simple. Please check before your stay."
+        label={L("Rooms", "客房")}
+        title={L("Guide", "入住指南")}
+        subtitle={L("Your Stay, Made Simple. Please check before your stay.", "轻松入住，一切从简。入住前请先阅读本指南。")}
         image="/images/building-205-entrance.webp"
-        alt="Entrance of Building 205"
+        alt={L("Entrance of Building 205", "205栋入口")}
         position="50% 40%"
       />
 
       <PageTabs
-        label="Rooms"
+        label={L("Rooms", "客房")}
         items={[
-          { label: "Business Room", href: "/business-room", active: false },
-          { label: "Guest Room", href: "/guest-room", active: false },
-          { label: "Guide", href: "/guide", active: true },
+          { label: L("Business Room", "商务套房"), href: "/business-room", active: false },
+          { label: L("Guest Room", "宾客套房"), href: "/guest-room", active: false },
+          { label: L("Guide", "入住指南"), href: "/guide", active: true },
         ]}
       />
 
@@ -31,14 +39,14 @@ export default function GuideView() {
         <Container className="grid gap-14 md:grid-cols-12">
           <div className="reveal md:col-span-4">
             <div className="md:sticky md:top-28">
-              <SectionLabel>Your Stay</SectionLabel>
+              <SectionLabel>{L("Your Stay", "您的入住")}</SectionLabel>
               <h2 className="mt-5 font-serif text-[40px] font-light leading-none md:text-[56px]">
-                From Arrival
+                {L("From Arrival", "从抵达")}
                 <br />
-                to Check-out
+                {L("to Check-out", "到退房")}
               </h2>
               <p className="mt-6 max-w-xs text-[14px] leading-relaxed text-charcoal/70">
-                Building access details and Wi-Fi information are shared privately with confirmed guests before arrival.
+                {L("Building access details and Wi-Fi information are shared privately with confirmed guests before arrival.", "楼栋出入方式与 Wi-Fi 信息将在抵达前单独告知已确认预订的宾客。")}
               </p>
             </div>
           </div>
@@ -46,7 +54,7 @@ export default function GuideView() {
             {stayGuide.map((s, i) => (
               <li
                 key={s.title}
-                id={s.title.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-")}
+                id={anchors[i]}
                 className="reveal grid scroll-mt-24 grid-cols-[48px_1fr] gap-4 border-t border-charcoal/15 py-9 last:border-b md:grid-cols-[96px_1fr] md:py-11"
                 style={{ "--delay": `${(i % 3) * 70}ms` } as React.CSSProperties}
               >
@@ -67,11 +75,11 @@ export default function GuideView() {
       <section id="guidelines" className="scroll-mt-20 bg-charcoal py-24 text-white md:py-32">
         <Container>
           <div className="reveal">
-            <SectionLabel light>Guest Guidelines</SectionLabel>
+            <SectionLabel light>{L("Guest Guidelines", "宾客守则")}</SectionLabel>
             <h2 className="mt-5 font-serif text-[40px] font-light leading-none md:text-[56px]">
-              For a Premium Stay,
+              {L("For a Premium Stay,", "共同营造")}
               <br />
-              Together.
+              {L("Together.", "高品质的入住体验")}
             </h2>
           </div>
           <ul className="mt-16 grid gap-x-10 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
@@ -90,11 +98,11 @@ export default function GuideView() {
       <section id="faq" className="scroll-mt-20 bg-warm-white py-24 md:py-32">
         <Container className="grid gap-12 md:grid-cols-12">
           <div className="reveal md:col-span-4">
-            <SectionLabel>FAQ</SectionLabel>
+            <SectionLabel>{L("FAQ", "常见问题")}</SectionLabel>
             <h2 className="mt-5 font-serif text-[40px] font-light leading-none md:text-[56px]">
-              Frequently
+              {L("Frequently", "常见")}
               <br />
-              Asked
+              {L("Asked", "问题")}
             </h2>
           </div>
           <div className="reveal md:col-span-8">
@@ -122,7 +130,7 @@ export default function GuideView() {
               </details>
             ))}
             <div className="mt-12">
-              <ArrowLink href="/contact">Ask a Question</ArrowLink>
+              <ArrowLink href="/contact">{L("Ask a Question", "提出问题")}</ArrowLink>
             </div>
           </div>
         </Container>

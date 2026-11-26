@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import SiteLink from "@/components/SiteLink";
+import SiteLink, { staticHref } from "@/components/SiteLink";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { nav } from "@/content/site";
+import { siteContent } from "@/content/site";
+import { useL, useLocale } from "@/i18n/client";
+import { localizeHref, type Locale } from "@/i18n/core";
 
 const LIGHT_PAGES = ["/contact", "/privacy"];
 
@@ -15,6 +17,8 @@ export default function Header() {
 }
 
 function HeaderNavigation({ pathname }: { pathname: string }) {
+  const L = useL();
+  const { nav } = siteContent(L);
   const headerRef = useRef<HTMLElement>(null);
   const [scrolled, setScrolled] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
@@ -76,7 +80,7 @@ function HeaderNavigation({ pathname }: { pathname: string }) {
       }`}
     >
       <div className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between px-5 md:h-[84px] md:px-10">
-        <SiteLink href="/" onClick={closeMenus} className="relative z-10 flex items-center" aria-label="Pangyo Global Campus home">
+        <SiteLink href="/" onClick={closeMenus} className="relative z-10 flex items-center" aria-label={L("Pangyo Global Campus home", "板桥环球园区首页")}>
           {/* White logo over the hero; the brand-colour logo on the light (scrolled / menu-open) header. */}
           <span className="relative block">
             <Image
@@ -99,7 +103,7 @@ function HeaderNavigation({ pathname }: { pathname: string }) {
           </span>
         </SiteLink>
 
-        <nav className="hidden lg:block" aria-label="Main">
+        <nav className="ml-auto hidden lg:block" aria-label={L("Main", "主导航")}>
           <ul className="flex items-center gap-6 xl:gap-8">
             {nav.map((item) => {
               const expanded = openMenu === item.label;
@@ -141,17 +145,20 @@ function HeaderNavigation({ pathname }: { pathname: string }) {
           </ul>
         </nav>
 
+        <div className="relative z-10 ml-auto flex items-center gap-4 lg:ml-8">
+          <LanguageSwitch pathname={pathname} light={!(solid || mobileOpen)} />
         <button
           type="button"
           onClick={() => setMobileOpen((open) => !open)}
           className={`relative z-10 -mr-2 flex size-11 flex-col items-center justify-center gap-[6px] lg:hidden ${mobileOpen ? "text-charcoal" : ""}`}
           aria-expanded={mobileOpen}
           aria-controls="mobile-menu"
-          aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          aria-label={mobileOpen ? L("Close menu", "关闭菜单") : L("Open menu", "打开菜单")}
         >
           <span className={`h-px w-6 bg-current transition-transform duration-300 ${mobileOpen ? "translate-y-[3.5px] rotate-45" : ""}`} />
           <span className={`h-px w-6 bg-current transition-transform duration-300 ${mobileOpen ? "-translate-y-[3.5px] -rotate-45" : ""}`} />
         </button>
+        </div>
       </div>
 
       <div
@@ -164,7 +171,7 @@ function HeaderNavigation({ pathname }: { pathname: string }) {
           if (event.target === event.currentTarget) closeMenus();
         }}
       >
-        <nav className="flex h-full flex-col justify-between overflow-y-auto px-6 pb-10 pt-24" aria-label="Mobile">
+        <nav className="flex h-full flex-col justify-between overflow-y-auto px-6 pb-10 pt-24" aria-label={L("Mobile", "移动端导航")}>
           <ul className="space-y-1">
             {nav.map((item, index) => (
               <li key={item.label} className={mobileOpen ? "fade-up" : ""} style={{ "--delay": `${index * 50}ms` } as React.CSSProperties}>
@@ -200,12 +207,56 @@ function HeaderNavigation({ pathname }: { pathname: string }) {
           </ul>
           <div className="mt-8 flex items-end justify-between gap-6">
             <div className="space-y-1 text-[13px] text-warm-gray">
-              <p>Building 205, Units 403 & 404</p>
-              <p>Pangyo Global Campus (TH212)</p>
+              <p>{L("Building 205, Units 403 & 404", "205栋 403、404室")}</p>
+              <p>{L("Pangyo Global Campus (TH212)", "板桥环球园区（TH212）")}</p>
             </div>
           </div>
         </nav>
       </div>
     </header>
+  );
+}
+
+// ENG / CHN switch: opens the same page in the other language, keeping the section (#hash) in view.
+function LanguageSwitch({ pathname, light }: { pathname: string; light: boolean }) {
+  const current = useLocale();
+  const options: { locale: Locale; label: string; name: string }[] = [
+    { locale: "en", label: "ENG", name: "English" },
+    { locale: "zh", label: "CHN", name: "中文" },
+  ];
+  return (
+    <div
+      role="group"
+      aria-label="Language / 语言"
+      className={`flex items-center gap-1 rounded-full border p-0.5 transition-colors duration-500 ${light ? "border-white/40" : "border-charcoal/20"}`}
+    >
+      {options.map((option) => {
+        const active = option.locale === current;
+        return (
+          <a
+            key={option.locale}
+            href={staticHref(localizeHref(pathname, option.locale))}
+            hrefLang={option.locale === "zh" ? "zh-CN" : "en"}
+            lang={option.locale === "zh" ? "zh-CN" : "en"}
+            aria-current={active ? "true" : undefined}
+            title={option.name}
+            onClick={(event) => {
+              if (window.location.hash) event.currentTarget.href += window.location.hash;
+            }}
+            className={`rounded-full px-2.5 py-1 text-[0.6875rem] font-semibold tracking-[0.12em] transition-colors md:px-3 ${
+              active
+                ? light
+                  ? "bg-white text-charcoal"
+                  : "bg-charcoal text-white"
+                : light
+                  ? "text-white/80 hover:text-white"
+                  : "text-charcoal/60 hover:text-charcoal"
+            }`}
+          >
+            {option.label}
+          </a>
+        );
+      })}
+    </div>
   );
 }

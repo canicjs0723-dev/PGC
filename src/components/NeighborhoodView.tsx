@@ -7,11 +7,13 @@ import PageTabs from "@/components/PageTabs";
 import { Container, SectionLabel } from "@/components/ui";
 import { PlaceIcon } from "@/components/PlaceIcon";
 import { WalkingMap } from "@/components/WalkingMap";
-import { categories, naverMap, type Category, type CategoryKey, type Place } from "@/content/neighborhood";
+import { type Category, type CategoryKey, type Place, neighborhoodContent, naverMap } from "@/content/neighborhood";
+import { useL } from "@/i18n/client";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
 function PlaceCard({ place, index, showMap }: { place: Place; index: number; showMap: boolean }) {
+  const L = useL();
   return (
     <li className="flex flex-col border border-line bg-white">
       {/* Photo slot: the place's photo when one is set, otherwise an icon tile. */}
@@ -58,7 +60,7 @@ function PlaceCard({ place, index, showMap }: { place: Place; index: number; sho
             showMap ? "bg-charcoal py-3 text-white hover:bg-navy" : "self-start border-b border-charcoal/40 pb-0.5 hover:border-charcoal"
           }`}
         >
-          Map <span aria-hidden>↗</span>
+          {L("Map", "地图")} <span aria-hidden>↗</span>
         </a>
       </div>
     </li>
@@ -103,6 +105,8 @@ function subscribe(onChange: () => void) {
 }
 
 export default function NeighborhoodView() {
+  const L = useL();
+  const { categories } = neighborhoodContent(L);
   const hash = useSyncExternalStore(subscribe, () => window.location.hash.slice(1), () => "");
   const active: CategoryKey = categories.some((c) => c.key === hash) ? (hash as CategoryKey) : categories[0].key;
 
@@ -118,19 +122,19 @@ export default function NeighborhoodView() {
     <>
       <PageHero
         tall
-        label="Information"
-        title="Neighborhood"
-        subtitle="Everyday essentials, local dining and places worth visiting — all close to Building 205."
+        label={L("Information", "周边信息")}
+        title={L("Neighborhood", "周边")}
+        subtitle={L("Everyday essentials, local dining and places worth visiting — all close to Building 205.", "生活必需、当地美食与值得一游的去处——都在205栋附近。")}
         image="/images/building-205-street.jpg"
-        alt="Street outside Building 205 at TH212 Pangyo"
+        alt={L("Street outside Building 205 at TH212 Pangyo", "板桥TH212 205栋外的街道")}
         position="50% 55%"
       />
 
       <PageTabs
-        label="Information"
+        label={L("Information", "周边信息")}
         items={[
-          { label: "Location", href: "/information/location", active: false },
-          { label: "Neighborhood", href: "/information/neighborhood", active: true },
+          { label: L("Location", "位置"), href: "/information/location", active: false },
+          { label: L("Neighborhood", "周边"), href: "/information/neighborhood", active: true },
         ]}
       />
 
@@ -138,15 +142,15 @@ export default function NeighborhoodView() {
         <Container>
           <div className="grid gap-6 md:grid-cols-12 md:items-end">
             <div className="md:col-span-6">
-              <SectionLabel>Around PGC</SectionLabel>
-              <h2 className="mt-5 font-serif text-[40px] font-light leading-none md:text-[56px]">Life Around PGC</h2>
+              <SectionLabel>{L("Around PGC", "PGC 周边")}</SectionLabel>
+              <h2 className="mt-5 font-serif text-[40px] font-light leading-none md:text-[56px]">{L("Life Around PGC", "PGC 周边生活")}</h2>
             </div>
             <p className="text-[15px] leading-relaxed text-charcoal/70 md:col-span-5 md:col-start-8">
-              Everyday essentials within a short walk, favorite restaurants and cafés a few minutes away by car, and places worth a visit around Seoul — all within easy reach of Building 205.
+              {L("Everyday essentials within a short walk, favorite restaurants and cafés a few minutes away by car, and places worth a visit around Seoul — all within easy reach of Building 205.", "步行即达的生活必需设施、车程几分钟的人气餐厅与咖啡馆，以及首尔周边值得一游的去处——从205栋出发都十分便捷。")}
             </p>
           </div>
 
-          <div className="mt-12 grid gap-5 md:grid-cols-3" role="tablist" aria-label="Neighborhood categories">
+          <div className="mt-12 grid gap-5 md:grid-cols-3" role="tablist" aria-label={L("Neighborhood categories", "周边分类")}>
             {categories.map((c, i) => {
               const selected = c.key === active;
               return (

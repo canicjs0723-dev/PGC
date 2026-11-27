@@ -25,7 +25,8 @@ export type ArrivalStep = {
   boxes?: { x: number; y: number; w: number; h: number; label?: string }[];
 };
 
-const LABEL_FONT = "'PGC Sans SC', 'Pretendard Variable', Pretendard, sans-serif";
+// Labels drawn on the route photos (SVG text): Pretendard on English pages, Noto Sans SC on Chinese pages
+// (the .route-label rules in globals.css).
 
 // Approximate rendered width of a label in em: CJK characters are a full em wide, Latin and digits about 0.62.
 const textEm = (text: string) => [...text].reduce((sum, ch) => sum + (/[\u2E80-\u9FFF\uF900-\uFAFF\uFF00-\uFFEF]/.test(ch) ? 1 : 0.62), 0);
@@ -38,7 +39,7 @@ function Pill({ cx, cy, text, unit, size = 0.05 }: { cx: number; cy: number; tex
   return (
     <g>
       <rect x={cx - width / 2} y={cy - height / 2} width={width} height={height} rx={fontSize * 0.25} fill="#1f1e1c" />
-      <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" fill="#ffffff" fontSize={fontSize} fontWeight={700} fontFamily={LABEL_FONT}>
+      <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" fill="#ffffff" fontSize={fontSize} fontWeight={700} className="route-label">
         {text}
       </text>
     </g>

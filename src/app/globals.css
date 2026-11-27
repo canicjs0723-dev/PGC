@@ -5,10 +5,10 @@
 @import "@fontsource/tinos/latin-400.css";
 @import "@fontsource/tinos/latin-400-italic.css";
 @import "@fontsource/tinos/latin-700.css";
-/* Chinese pages (/zh): Noto Sans SC pairs with Pretendard (both descend from Source Han Sans) and Noto Serif SC
-   with Tinos. They cover only Chinese characters and CJK punctuation and are used only under :lang(zh) below,
-   so English pages never download them and Latin letters and digits keep their original faces. */
-@import "./fonts/noto-sc-cjk.css";
+/* Chinese pages (/zh): every piece of text uses Noto Sans SC (SIL OFL 1.1, public/fonts/NotoSansSC-OFL.txt),
+   self-hosted as WOFF2 chunks (no external font CDN). It is applied only under html:lang(zh) below, so English
+   pages never download it and keep Pretendard / Tinos. */
+@import "./fonts/noto-sans-sc.css";
 @import "tailwindcss";
 
 /* Digits only (0-9): the exact Pretendard Variable face used by the room tabs, subset so it can
@@ -65,13 +65,23 @@ body {
 }
 
 /* Chinese pages. The root layout marks <html lang="zh-CN"> for any address under /zh before first paint. */
+/* Headings (font-serif), body text, menus, buttons and pop-ups all use Noto Sans SC; sizes, weights, letter
+   spacing, line height and alignment come from the same classes as on the English pages. */
 html:lang(zh) {
-  --pgc-sans: "PGC Numerals", "PGC Sans SC", "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-  --pgc-serif: "PGC Numerals", "PGC Serif SC", "Tinos", "Times New Roman", "Songti SC", "SimSun", serif;
+  --pgc-sans: "PGC Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --pgc-serif: "PGC Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
 /* Chinese has no spaces between words, so lines must be allowed to break between characters (keep-all would
    push whole sentences onto one line). strict keeps CJK punctuation off line starts. */
+.route-label {
+  font-family: "Pretendard Variable", Pretendard, sans-serif;
+}
+
+html:lang(zh) .route-label {
+  font-family: var(--pgc-sans);
+}
+
 html:lang(zh) body {
   word-break: normal;
   line-break: strict;
